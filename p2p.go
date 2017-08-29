@@ -240,7 +240,7 @@ func (rep reply) Verify(origmd5 string) bool {
 	return strings.Compare(rep.MD5, origmd5) == 0
 }
 
-func PKCS5Padding(origData []byte, blockSize ...int) []byte {
+func p2pPadding(origData []byte, blockSize ...int) []byte {
 	var bk int
 	if len(blockSize) > 0 {
 		bk = blockSize[0]
@@ -252,7 +252,7 @@ func PKCS5Padding(origData []byte, blockSize ...int) []byte {
 	return append(origData, padData...)
 }
 
-func PKCS5UnPadding(padData []byte) []byte {
+func p2pUnPadding(padData []byte) []byte {
 	length := len(padData)
 	// 去掉最后一个字节 unpadding 次
 	unpadding := int(padData[length-1])
@@ -355,7 +355,7 @@ func main() {
 	data, _ := ioutil.ReadFile(arg)
 
 	req, _ := json.Marshal(&request{Op: "put", DataSize: len(data), HasPubKey: false})
-	head := PKCS5Padding(req)
+	head := p2pPadding(req)
 	data = append(head, data...)
 	fmt.Println("Orign size: ", len(data))
 	s.Write(data)
@@ -443,8 +443,8 @@ func doEcho(s net.Stream) {
 	}
 	fmt.Println("Get Size: ", len(data))
 	rep, _ := json.Marshal(&reply{Status: req.DataSize == len(data), Op: req.Op, GetSize: len(data), MD5: Md5SumBytes(data)})
-	fmt.Println(len(PKCS5Padding(rep)))
-	n, err = s.Write(PKCS5Padding(rep))
+	fmt.Println(len(p2pPadding(rep)))
+	n, err = s.Write(p2pPadding(rep))
 	fmt.Printf("%d : %v\n", n, err)
 	fmt.Println("Reply")
 	fmt.Println("Has PubKey? ", req.HasPubKey)

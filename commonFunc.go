@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"reflect"
 	"strings"
 )
 
@@ -68,4 +69,31 @@ func deepth(nodePath Path, e ...interface{}) Path {
 		}
 	}
 	return ""
+}
+func intArr2InterArr(arr []int) []interface{} {
+	tmp := make([]interface{}, len(arr), len(arr))
+	for i, v := range arr {
+		tmp[i] = interface{}(v)
+	}
+	return tmp
+}
+func strArr2InterArr(arr []string) []interface{} {
+	tmp := make([]interface{}, len(arr), len(arr))
+	for i, v := range arr {
+		tmp[i] = interface{}(v)
+	}
+	return tmp
+}
+
+func containEle(arr []interface{}, ele interface{}) int {
+	if len(arr) > 0 {
+		if strings.Compare(reflect.TypeOf(arr[0]).Name(), reflect.TypeOf(ele).Name()) == 0 {
+			for i, v := range arr {
+				if v == ele {
+					return i
+				}
+			}
+		}
+	}
+	return -1
 }

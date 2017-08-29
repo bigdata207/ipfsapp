@@ -1,43 +1,37 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"github.com/klauspost/reedsolomon"
 	"io"
 	"os"
+	"path/filepath"
 )
 
-//ar dataShards = flag.Int("data", 10, "Number of shards to split the data into")
+//var dataShards = flag.Int("data", 10, "Number of shards to split the data into")
 //var parShards = flag.Int("par", 4, "Number of parity shards")
-var outFile = flag.String("out", "./restore/1.mp3", "Alternative output path/file")
+var outSuffix = "pieces/"
+var resSuffix = "restore/"
 
-func init() {
-	flag.Usage = func() {
-		fmt.Fprintf(os.Stderr, "Usage of %s:\n", os.Args[0])
-		fmt.Fprintf(os.Stderr, "  %s [-flags] basefile.ext\nDo not add the number to the filename.\n", os.Args[0])
-		fmt.Fprintf(os.Stderr, "Valid flags:\n")
-		flag.PrintDefaults()
-	}
+func fname2tmpdir(fname string) string {
+	return "./tmp/" + fname + outSuffix
 }
 
-func rsdecode() {
-	// Parse flag
-	flag.Parse()
-	args := flag.Args()
-	if len(args) != 1 {
-		fmt.Fprintf(os.Stderr, "Error: No filenames given\n")
-		flag.Usage()
-		os.Exit(1)
-	}
-	//fname := "/mnt/extra/MackZ/go/src/github.com/mackzhong/ec/output"
-	fname := args[0]
-	// Create matrix
-	enc, err := reedsolomon.NewStream(*dataShards, *parShards)
-	checkErr(err)
+func fname2resdir(fname string) string {
+	return "./" + fname + resSuffix
+}
+func tmpdir2fname(tmpdir string) string {
+	_, file := filepath.Split(tmpdir)
+	return file[:(len(file) - len(outSuffix))]
+}
+func rsdecode(fname string, dataShards, parShards int, cryptoKey ...string) {
 
+	// Create matrix
+	enc, err := reedsolomon.NewStream(dataShards, parShards)
+	checkErr(err)
+	//piecesFolder := fname2tmpdir(fname)
 	// Open the inputs
-	shards, size, err := openInput(*dataShards, *parShards, fname)
+	shards, size, err := openInput(dataShards, parShards, fname)
 	checkErr(err)
 
 	// Verify the shards
@@ -46,7 +40,7 @@ func rsdecode() {
 		fmt.Println("No reconstruction needed")
 	} else {
 		fmt.Println("Verification failed. Reconstructing data")
-		shards, size, err = openInput(*dataShards, *parShards, fname)
+		shards, size, err = openInput(dataShards, parShards, fname)
 		checkErr(err)
 		// Create out destination writers
 		out := make([]io.Writer, len(shards))
@@ -70,7 +64,7 @@ func rsdecode() {
 				checkErr(err)
 			}
 		}
-		shards, size, err = openInput(*dataShards, *parShards, fname)
+		shards, size, err = openInput(dataShards, parShards, fname)
 		ok, err = enc.Verify(shards)
 		if !ok {
 			fmt.Println("Verification failed after reconstruction, data likely corrupted:", err)
@@ -80,28 +74,30 @@ func rsdecode() {
 	}
 
 	// Join the shards and write them
-	outfn := *outFile
-	if outfn == "" {
-		outfn = fname
+	_, err = os.Open(fname2resdir(fname))
+	if err != nil {
+		os.Mkdir(fname2resdir(fname), os.ModeDir)
 	}
+	outfn := fname2resdir(fname) + fname
 
 	fmt.Println("Writing data to", outfn)
 	f, err := os.Create(outfn)
 	checkErr(err)
 
-	shards, size, err = openInput(*dataShards, *parShards, fname)
+	shards, size, err = openInput(dataShards, parShards, fname)
 	checkErr(err)
 
 	// We don't know the exact filesize.
-	err = enc.Join(f, shards, int64(*dataShards)*size)
+	err = enc.Join(f, shards, int64(dataShards)*size)
 	checkErr(err)
 }
 
 func openInput(dataShards, parShards int, fname string) (r []io.Reader, size int64, err error) {
 	// Create shards and load the data.
+	tmpDir := fname2tmpdir(fname)
 	shards := make([]io.Reader, dataShards+parShards)
 	for i := range shards {
-		infn := fmt.Sprintf("%s.%d", fname, i)
+		infn := fmt.Sprintf("%s%s.%d", tmpDir, fname, i)
 		fmt.Println("Opening", infn)
 		f, err := os.Open(infn)
 		if err != nil {

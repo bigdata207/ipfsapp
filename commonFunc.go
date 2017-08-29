@@ -14,7 +14,15 @@ func readLine() ([]byte, error) {
 	fmt.Println(b)
 	return data, err
 }
-
+func relaPath2AbsoPath(relaPath string) string {
+	curDir, _ := os.Getwd()
+	if relaPath[0] == '.' {
+		return curDir + "/" + relaPath[1:]
+	} else if relaPath[0] != '/' {
+		return curDir + "/" + relaPath
+	}
+	return relaPath
+}
 func search(in IndexNode, key string) []Path {
 	paths := make([]Path, 0)
 	if strings.Contains(in.kv.k, key) {

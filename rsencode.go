@@ -1,7 +1,6 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"github.com/klauspost/reedsolomon"
 	"io"
@@ -9,28 +8,25 @@ import (
 	"path/filepath"
 )
 
+/**
 var dataShards = flag.Int("data", 10, "Number of shards to split the data into, must be below 257.")
 var parShards = flag.Int("par", 4, "Number of parity shards")
 var outDir = flag.String("out", "/mnt/extra/MackZ/go/src/github.com/mackzhong/ec/output", "Alternative output directory")
-
-func rsencode() {
+**/
+func rsencode(fname string, dataShards, parShards int, cryptoKey ...string) {
 	fmt.Println("Test ReedSolomon")
 	// Parse command line parameters.
-	flag.Parse()
-	args := flag.Args()
-	if len(args) == 1 {
-		fmt.Fprintf(os.Stderr, "Error: No input filename given\n")
-		flag.Usage()
-		os.Exit(1)
-	}
-	if *dataShards > 257 {
+
+	if dataShards > 257 {
 		fmt.Fprintf(os.Stderr, "Error: Too many data shards\n")
 		os.Exit(1)
 	}
-	fname := "/mnt/extra/MackZ/go/src/github.com/mackzhong/ec/1.mp3"
+	if fname == "" {
+		fname = "./1.mp3"
+	}
 
 	// Create encoding matrix.
-	enc, err := reedsolomon.NewStream(*dataShards, *parShards)
+	enc, err := reedsolomon.NewStream(dataShards, parShards)
 	checkErr(err)
 
 	fmt.Println("Opening", fname)
@@ -40,14 +36,14 @@ func rsencode() {
 	instat, err := f.Stat()
 	checkErr(err)
 
-	shards := *dataShards + *parShards
+	shards := dataShards + parShards
 	out := make([]*os.File, shards)
 
 	// Create the resulting files.
 	dir, file := filepath.Split(fname)
-	if *outDir != "" {
-		dir = *outDir
-	}
+
+	dir = fname2tmpdir(file)
+
 	for i := range out {
 		outfn := fmt.Sprintf("%s.%d", file, i)
 		fmt.Println("Creating", outfn)
@@ -56,7 +52,7 @@ func rsencode() {
 	}
 
 	// Split into files.
-	data := make([]io.Writer, *dataShards)
+	data := make([]io.Writer, dataShards)
 	for i := range data {
 		data[i] = out[i]
 	}
@@ -65,7 +61,7 @@ func rsencode() {
 	checkErr(err)
 
 	// Close and re-open the files.
-	input := make([]io.Reader, *dataShards)
+	input := make([]io.Reader, dataShards)
 
 	for i := range data {
 		out[i].Close()
@@ -76,16 +72,16 @@ func rsencode() {
 	}
 
 	// Create parity output writers
-	parity := make([]io.Writer, *parShards)
+	parity := make([]io.Writer, parShards)
 	for i := range parity {
-		parity[i] = out[*dataShards+i]
-		defer out[*dataShards+i].Close()
+		parity[i] = out[dataShards+i]
+		defer out[dataShards+i].Close()
 	}
 
 	// Encode parity
 	err = enc.Encode(input, parity)
 	checkErr(err)
-	fmt.Printf("File split into %d data + %d parity shards.\n", *dataShards, *parShards)
+	fmt.Printf("File split into %d data + %d parity shards.\n", dataShards, parShards)
 
 }
 

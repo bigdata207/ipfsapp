@@ -20,7 +20,7 @@ import (
 **/
 
 const (
-	user       = "zt"
+	user       = "bigdata"
 	password   = "1234"
 	seq        = "!@#$%^&*()_+"
 	keyRoot    = "./"
@@ -37,8 +37,8 @@ var privateKey []byte
 //rsa公钥
 var publicKey []byte
 
-//calSalt 计算salt,并且会在不存在rsa key时生成
-func calSalt() {
+//初始化公钥和私钥
+func init() {
 	files, err := ioutil.ReadDir(keyRoot)
 	if err == nil {
 		b := 0
@@ -46,7 +46,7 @@ func calSalt() {
 			if !v.IsDir() && (strings.Compare(v.Name(), priKeyFile) == 0 || strings.Compare(v.Name(), pubKeyFile) == 0) {
 				b++
 			}
-			fmt.Println(v.Name())
+			//fmt.Println(v.Name())
 		}
 		if b != 2 {
 			fmt.Println("Can't find key file, regenerate!")
@@ -56,6 +56,11 @@ func calSalt() {
 
 		publicKey, _ = ioutil.ReadFile(keyRoot + pubKeyFile)
 	}
+}
+
+//calSalt 计算salt,并且会在不存在rsa key时生成
+func calSalt() {
+
 	origstr := user + seq + password
 	if len([]byte(origstr)) > 128 {
 		fmt.Println("seq is too long")

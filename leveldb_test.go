@@ -13,7 +13,7 @@ type Sustc struct {
 	Age  int
 }
 
-func Test_LevelDB(t *testing.T) {
+func TestLevelDB(t *testing.T) {
 	fmt.Println("Test LevelDB")
 	ss := Sustc{Name: "t", Age: 8}
 	info, _ := json.Marshal(ss)
@@ -34,7 +34,7 @@ func Test_LevelDB(t *testing.T) {
 		value := iter.Value()
 		fmt.Printf("%s : %s\n", key, value)
 	}
-	me, _ := db.Get([]byte("zt"), nil)
+	me, _ := db.Get([]byte("hsg"), nil)
 	fmt.Printf("%s\n", me)
 	iter.Release()
 	err = iter.Error()

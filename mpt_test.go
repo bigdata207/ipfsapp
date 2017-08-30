@@ -24,5 +24,4 @@ func TestMPT(t *testing.T) {
 	fmt.Println(len(p.KeyHash()))
 	p, _ = p.Add("go")
 	fmt.Println(p.KeyHash())
-	fmt.Println(Get("h"))
 }

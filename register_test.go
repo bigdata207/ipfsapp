@@ -68,11 +68,10 @@ func in2map(m interface{}) {
 }
 
 func Test(t *testing.T) {
-	registerInitStruct()
 	fmt.Println(structMap)
 	registerStruct(Human{})
 	fmt.Println(structMap)
-	s := Citizen{h: Human{"zt", "1510"}, stuid: "11510291"}
+	s := Citizen{h: Human{"big", "1234"}, stuid: "223676423745"}
 	data, _ := json.Marshal(s)
 	in2map(string(data))
 }

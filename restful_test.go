@@ -1,4 +1,4 @@
-package restful
+package ipfsapp
 
 import (
 	"fmt"
@@ -12,7 +12,8 @@ func getFunc() func() {
 		i++
 	}
 }
-func TestServert(*testing.T) {
+
+func TestServer(*testing.T) {
 	fmt.Println("Start RESTful API Server...")
 	c := make(chan error)
 	go StartAPIServer(c)

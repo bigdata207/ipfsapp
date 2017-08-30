@@ -70,11 +70,11 @@ func (Citizen) Hello() {
 func mapTest() {
 	fmt.Println("hello")
 	a := make(map[string]string)
-	a["me"] = "zt"
+	a["me"] = "hsf"
 	for k, v := range a {
 		fmt.Printf("%s: %6s\n", k, v)
 	}
-	b := map[int]string{1: "zt", 2: "sustc"}
+	b := map[int]string{1: "hsf", 2: "sustc"}
 	for k, v := range b {
 		fmt.Printf("%v: %6s\n", k, v)
 	}
@@ -172,7 +172,7 @@ func TestTutorial(t *testing.T) {
 	arrayTest()
 	controlTest()
 	pointTest()
-	p := &person{"zt", 20}
+	p := &person{"hsf", 20}
 	a := struct {
 		Name string
 		Age  int
@@ -185,7 +185,7 @@ func TestTutorial(t *testing.T) {
 	fmt.Println(p)
 	p.setAge()
 	fmt.Println(p)
-	stu := &student{person: person{"zt", 17}, StuID: "11510291"}
+	stu := &student{person: person{"hsf", 17}, StuID: "32767234"}
 	stu.sayHi()
 	fmt.Println(stu)
 	stu.Name = "sustc"
@@ -215,7 +215,7 @@ func TestTutorial(t *testing.T) {
 	var b USB
 	b = PhoneConnector{name: "MeiZu"}
 	b.Connect()
-	me := Citizen{1, "zt", 12}
+	me := Citizen{1, "hsf", 12}
 	go getInfo(me)
 	time.Sleep(time.Second)
 	fmt.Println("Final:")

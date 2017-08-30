@@ -222,21 +222,21 @@ func makeBasicHost(listenPort int, secio bool, randseed int64) (host.Host, error
 
 var mb int = 1024 * 1024
 
-type request struct {
+type p2prequest struct {
 	Op        string `json:"op"`
 	DataSize  int    `json:"datasize"`
 	HasPubKey bool   `json:"haspubkey"`
 	PubKey    string `json:"pubkey"`
 }
 
-type reply struct {
+type p2preply struct {
 	Status  bool   `json:"status"`
 	GetSize int    `json:"getsize"`
 	Op      string `json:"op"`
 	MD5     string `json:"md5"`
 }
 
-func (rep reply) Verify(origmd5 string) bool {
+func (rep p2preply) Verify(origmd5 string) bool {
 	return strings.Compare(rep.MD5, origmd5) == 0
 }
 
@@ -354,7 +354,7 @@ func ipfsapp() {
 
 	data, _ := ioutil.ReadFile(arg)
 
-	req, _ := json.Marshal(&request{Op: "put", DataSize: len(data), HasPubKey: false})
+	req, _ := json.Marshal(&p2prequest{Op: "put", DataSize: len(data), HasPubKey: false})
 	head := p2pPadding(req)
 	data = append(head, data...)
 	fmt.Println("Orign size: ", len(data))
@@ -392,7 +392,7 @@ func ipfsapp() {
 	s.Read(head)
 	//copy(head, out)
 	head = PKCS5UnPadding(head)
-	rep := &reply{}
+	rep := &p2preply{}
 	if err == nil {
 		json.Unmarshal(head, rep)
 		log.Printf("read reply: %s\n", string(head))
@@ -412,7 +412,7 @@ func doEcho(s net.Stream) {
 	var data []byte
 	head := make([]byte, 128)
 	n, err := s.Read(head)
-	req := &request{}
+	req := &p2prequest{}
 	json.Unmarshal(PKCS5UnPadding(head), req)
 	fmt.Println(string(PKCS5UnPadding(head)))
 	if req.HasPubKey {
@@ -442,7 +442,7 @@ func doEcho(s net.Stream) {
 		fmt.Println("After")
 	}
 	fmt.Println("Get Size: ", len(data))
-	rep, _ := json.Marshal(&reply{Status: req.DataSize == len(data), Op: req.Op, GetSize: len(data), MD5: Md5SumBytes(data)})
+	rep, _ := json.Marshal(&p2preply{Status: req.DataSize == len(data), Op: req.Op, GetSize: len(data), MD5: Md5SumBytes(data)})
 	fmt.Println(len(p2pPadding(rep)))
 	n, err = s.Write(p2pPadding(rep))
 	fmt.Printf("%d : %v\n", n, err)

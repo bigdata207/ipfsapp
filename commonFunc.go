@@ -22,6 +22,27 @@ func strend(s string) byte {
 	return s[len(s)-1]
 }
 
+//func2anonymousFunc　简单地将一个已有的函数转化成一个匿名函数
+func func2anonymousFunc(funcName string) func(...interface{}) interface{} {
+	//f := reflect.TypeOf(strend)
+	f := funcMap[funcName]
+	fmt.Println("func para num: ", f.NumIn())
+	for i := 0; i < f.NumIn(); i++ {
+		fmt.Printf("in %d: %v\n", i, f.In(i).Name())
+	}
+	fmt.Println("func return num:", f.NumOut())
+	for i := 0; i < f.NumOut(); i++ {
+		fmt.Printf("out %d: %v\n", i, f.Out(i).Name())
+	}
+	fun := func(a ...interface{}) interface{} {
+		if len(a) == f.NumIn() {
+			return interface{}(strend(a[0].(string)))
+		}
+		return nil
+	}
+	return fun
+}
+
 //NewCounter 返回一个从begin开始的计数器函数
 func NewCounter(begin int) func() int {
 	i := begin

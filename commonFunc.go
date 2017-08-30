@@ -1,4 +1,4 @@
-package main
+package ipfsapp
 
 import (
 	"bufio"
@@ -9,13 +9,32 @@ import (
 	"strings"
 )
 
-func readLine() ([]byte, error) {
+//ReadLine 从终端读取一行输入
+func ReadLine() ([]byte, error) {
 	reader := bufio.NewReader(os.Stdin)
 	data, b, err := reader.ReadLine()
 	fmt.Println(b)
 	return data, err
 }
-func relaPath2AbsoPath(relaPath string) string {
+
+//strend　获取字符串的最后一个字符
+func strend(s string) byte {
+	return s[len(s)-1]
+}
+
+//NewCounter 返回一个从begin开始的计数器函数
+func NewCounter(begin int) func() int {
+	i := begin
+	return func() int {
+		fmt.Println(i)
+		t := i
+		i++
+		return t
+	}
+}
+
+//RelaPath2AbsoPath 相对路径转绝对路径
+func RelaPath2AbsoPath(relaPath string) string {
 	curDir, _ := os.Getwd()
 	if relaPath[0] == '.' {
 		return curDir + "/" + relaPath[1:]
@@ -24,15 +43,17 @@ func relaPath2AbsoPath(relaPath string) string {
 	}
 	return relaPath
 }
-func search(in IndexNode, key string) []Path {
+
+//Search 从给定的IndexNode开始查找和key匹配的路径
+func Search(in IndexNode, key string) []Path {
 	paths := make([]Path, 0)
 	if strings.Contains(in.kv.k, key) {
 		paths = append(paths, in.kv.v)
 	}
 
-	if in.isDir() {
+	if in.IsDir() {
 		for _, v := range in.childBlocks {
-			tmp := search(v, key)
+			tmp := Search(v, key)
 			if len(tmp) == 0 {
 				return paths
 			}
@@ -45,7 +66,7 @@ func search(in IndexNode, key string) []Path {
 func dfs(kv kvNode) map[string]IndexNode {
 	dirPath := kv.v
 	ins := make(map[string]IndexNode)
-	childs, err := ioutil.ReadDir(dirPath.toString())
+	childs, err := ioutil.ReadDir(dirPath.String())
 	if err == nil {
 		for _, v := range childs {
 			tmp := deepth(dirPath.Add(v.Name()))
@@ -59,7 +80,7 @@ func dfs(kv kvNode) map[string]IndexNode {
 }
 
 func deepth(nodePath Path, e ...interface{}) Path {
-	childs, err := ioutil.ReadDir(nodePath.toString())
+	childs, err := ioutil.ReadDir(nodePath.String())
 	if err == nil {
 		if len(childs) == 1 && childs[0].IsDir() {
 			childPath, err := nodePath.Add(childs[0].Name())
@@ -85,7 +106,8 @@ func strArr2InterArr(arr []string) []interface{} {
 	return tmp
 }
 
-func containEle(arr []interface{}, ele interface{}) int {
+//ContainEle 判断数组中是否含有某个元素
+func ContainEle(arr []interface{}, ele interface{}) int {
 	if len(arr) > 0 {
 		if strings.Compare(reflect.TypeOf(arr[0]).Name(), reflect.TypeOf(ele).Name()) == 0 {
 			for i, v := range arr {

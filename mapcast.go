@@ -1,4 +1,4 @@
-package main
+package ipfsapp
 
 import (
 	"errors"

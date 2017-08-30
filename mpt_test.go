@@ -1,4 +1,4 @@
-package main
+package ipfsapp
 
 import (
 	"fmt"
@@ -12,6 +12,7 @@ func TestMPT(t *testing.T) {
 	if err == nil {
 		fmt.Println(p.Add("vrit"))
 		fmt.Println(p.Back("root"))
+		fmt.Println(p.Sub("/"))
 	} else {
 		fmt.Println(err)
 	}

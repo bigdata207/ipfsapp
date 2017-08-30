@@ -1,4 +1,4 @@
-package main
+package ipfsapp
 
 import (
 	_ "bufio"
@@ -259,7 +259,7 @@ func p2pUnPadding(padData []byte) []byte {
 	return padData[:(length - unpadding)]
 }
 
-func main() {
+func ipfsapp() {
 	// LibP2P code uses golog to log messages. They log with different
 	// string IDs (i.e. "swarm"). We can control the verbosity level for
 	// all loggers with:

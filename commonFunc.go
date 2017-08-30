@@ -119,3 +119,26 @@ func ContainEle(arr []interface{}, ele interface{}) int {
 	}
 	return -1
 }
+
+//LinesCounter 统计文件下go源码行数
+func LinesCounter(dir string, suffix ...string) int {
+	if len(suffix) == 0 {
+		suffix = append(suffix, "go")
+	}
+	lines := 0
+	fs, err := ioutil.ReadDir(dir)
+	if err == nil {
+		for _, v := range fs {
+			if v.IsDir() {
+				lines += LinesCounter(dir + "/" + v.Name())
+			} else {
+				s := strings.Split(v.Name(), ".")
+				if ContainEle(strArr2InterArr(suffix), s[len(s)-1]) > -1 {
+					f, _ := ioutil.ReadFile(dir + "/" + v.Name())
+					lines += len(strings.Split(string(f), "\n"))
+				}
+			}
+		}
+	}
+	return lines
+}

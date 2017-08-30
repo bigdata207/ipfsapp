@@ -2,7 +2,6 @@ package ipfsapp
 
 import (
 	"fmt"
-	"github.com/mackzhong/ipfsapp/restful"
 	"os"
 	"path/filepath"
 	"testing"
@@ -19,5 +18,4 @@ func TestMain(t *testing.T) {
 	fmt.Println(testIPFS())
 	a := "1234"
 	fmt.Println(string(strend(a)))
-	fmt.Println(restful.Add(1, 2))
 }

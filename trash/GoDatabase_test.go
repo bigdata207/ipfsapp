@@ -12,6 +12,7 @@ import (
 	"gopkg.in/redis.v4"
 	"reflect"
 	"sync"
+	"testing"
 	"time"
 )
 
@@ -403,7 +404,9 @@ func couchdbTest() {
 		fmt.Printf("Row: %v", row)
 	}
 }
-func main() {
+
+//TestDatabase 测试各个数据库
+func TestDatabase(t *testing.T) {
 	fmt.Println("*****MongoTest start...********")
 	c1 := make(chan int)
 	go mongoTest(c1)

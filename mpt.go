@@ -2,6 +2,7 @@ package ipfsapp
 
 import (
 	"crypto/md5"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -149,11 +150,21 @@ type parent struct {
 	RelativePath Path
 }
 
+//NewParent 返回一个上传记录对象
+func NewParent(h string, r Path) parent {
+	return parent{Hash: h, RelativePath: r}
+}
+
 type piece struct {
-	Index         int
-	PieceName     string
-	PieceIPFSHash string
-	Log           []byte
+	Index     int
+	PieceName string
+	PieceIPFS string
+	Log       []byte
+}
+
+//NewPiece 返回一个分片对象
+func NewPiece(i int, pn, pi string, l []byte) piece {
+	return piece{Index: i, PieceName: pn, PieceIPFS: pi, Log: l}
 }
 
 //InfoNode 文件信息节点,序列化后存入leveldb,从leveldb中读取的数据也会反序列化成InfoNode对象
@@ -162,13 +173,25 @@ type InfoNode struct {
 	UploadRoot     parent   //记录文件上传时的根文件夹的hash以及与其相对路径
 	AbsolutePath   Path     //文件[夹]在目录树中的绝对路径
 	IPFSHash       string   //文件直接上传的IPFS链接
-	Pieces         piece    //记录RS分块信息与IPFSHash二选一
+	Pieces         []piece  //记录RS分块信息与IPFSHash二选一
 	PathAndContent string   //Hash(ipfshash +hash(path)),路径或者内容改变这个值都会改变
 	ChildBlocks    []string //子文件[夹]
 	CryptoKey      string   //文件AES加密密钥
 	//UploadType     string   //Client or Web
 	FileType string //文件类型
 	MD5      string //记录文件md5校验值
+}
+
+//InfoNode2Json 将InfoNode对象转成json字符串
+func InfoNode2Json(infoN *InfoNode) ([]byte, error) {
+	return json.Marshal(infoN)
+}
+
+//NewInfoNodeFromJson 从json对象中恢复一个InfoNode对象
+func NewInfoNodeFromJson(jsonBytes []byte) (*InfoNode, error) {
+	in := &InfoNode{}
+	err := json.Unmarshal(jsonBytes, in)
+	return in, err
 }
 
 //kvNode　索引树中的key:绝对路径

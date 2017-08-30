@@ -5,10 +5,10 @@ import (
 	_ "reflect"
 )
 
-func struct2json(obj interface{}) ([]byte, error) {
-	return json.Marshal(obj)
+func struct2json(infoN *InfoNode) ([]byte, error) {
+	return json.Marshal(infoN)
 }
 
-func json2struct(jsonstr []byte, obj interface{}) error {
-	return nil
+func json2struct(jsonBytes []byte, infoN *InfoNode) error {
+	return json.Unmarshal(jsonBytes, infoN)
 }

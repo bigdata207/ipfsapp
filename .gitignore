@@ -31,3 +31,6 @@ _testmain.go
 cover.html
 README.html
 /db/
+/vueweb/
+!/vueweb/runweb.go
+!/vueweb/runweb_test.go

@@ -26,34 +26,11 @@ import (
 	"io/ioutil"
 	"log"
 	mrand "math/rand"
-	gonet "net"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
 )
-
-func getIP() []string {
-	addrs, err := gonet.InterfaceAddrs()
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-	ips := make([]string, 0)
-	for _, address := range addrs {
-
-		// ipnet.IP.IsLoopback()检查ip地址判断是否回环地址
-		//if ipnet, ok := address.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
-		if ipnet, ok := address.(*gonet.IPNet); ok {
-			if ipnet.IP.To4() != nil {
-				fmt.Println(ipnet.IP.String())
-				ips = append(ips, ipnet.IP.String())
-			}
-
-		}
-	}
-	return ips
-}
 
 // makeBasicHost creates a LibP2P host with a random peer ID listening on the
 // given multiaddress. It will use secio if secio is true.

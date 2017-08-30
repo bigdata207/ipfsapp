@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"io/ioutil"
+	"net"
 	"os"
 	"reflect"
 	"strings"
@@ -162,4 +163,26 @@ func LinesCounter(dir string, suffix ...string) int {
 		}
 	}
 	return lines
+}
+
+func getIP() []string {
+	addrs, err := net.InterfaceAddrs()
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+	ips := make([]string, 0)
+	for _, address := range addrs {
+
+		// ipnet.IP.IsLoopback()检查ip地址判断是否回环地址
+		//if ipnet, ok := address.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
+		if ipnet, ok := address.(*net.IPNet); ok {
+			if ipnet.IP.To4() != nil {
+				fmt.Println(ipnet.IP.String())
+				ips = append(ips, ipnet.IP.String())
+			}
+
+		}
+	}
+	return ips
 }

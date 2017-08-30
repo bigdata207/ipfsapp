@@ -7,7 +7,7 @@ import (
 )
 
 func TestUI(t *testing.T) {
-	err := ui.Main(initUI)
+	err := ui.Main(LoginBox)
 	if err != nil {
 		panic(err)
 	}

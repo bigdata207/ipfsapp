@@ -2,7 +2,10 @@ package ipfsapp
 
 import (
 	_ "fmt"
+	"pkg.re/essentialkaos/ek.v9/fsutil"
 	"testing"
+
+	check "pkg.re/check.v1"
 )
 
 func TestRAR(t *testing.T)   {}

@@ -96,7 +96,7 @@ func getIndexTree(veriferInfo, isCrypto string) string {
 	//veriferInfo := c.Param("verifer")
 	//isCrypto := c.DefaultQuery("crypto", "true")
 	if isCrypto == "true" {
-		jsonstr, err := RsaDecrypt([]byte(veriferInfo))
+		jsonstr, err := RsaDecrypt([]byte(veriferInfo), privateKey)
 		req := &apiRequest{}
 		err = json.Unmarshal([]byte(jsonstr), req)
 		if err == nil {

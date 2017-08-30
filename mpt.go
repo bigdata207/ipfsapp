@@ -66,7 +66,7 @@ func calSalt() {
 		fmt.Println("seq is too long")
 		return
 	}
-	salt, err = RsaEncrypt([]byte(origstr))
+	salt, err = RsaEncrypt([]byte(origstr), publicKey)
 }
 
 //Path 基于string的Path结构

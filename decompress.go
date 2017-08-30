@@ -1,29 +1,87 @@
 package ipfsapp
 
 import (
+	"archive/tar"
 	_ "bufio"
+	"compress/gzip"
 	"errors"
+	"fmt"
+	"io"
 	_ "io/ioutil"
-	_ "os"
+	"os"
+	"path/filepath"
 	_ "path/filepath"
 )
 
-func zipUnCompress(ifname, ofname string) error {
+func zipUnCompress(ifpath, ofpath string) error {
 	return nil
 }
-func tarUnCompress(ifname, ofname string) error {
+func tarUnCompress(ifpath, ofpath string) error {
 	return nil
 }
-func targzUnCompress(ifname, ofname string) error {
+func targzUnCompress(ifpath, ofpath string) error {
+	_, fn := filepath.Split(ifpath)
+
+	if strend(ofpath) == '/' {
+		ofpath += fn[:(len(fn) - 7)]
+	} else {
+		ofpath += ("/" + fn[:(len(fn)-7)])
+	}
+
+	fr, err := os.Open(ifpath)
+	if err != nil {
+		panic(err)
+	}
+	defer fr.Close()
+
+	// gzip read
+	gr, err := gzip.NewReader(fr)
+	if err != nil {
+		panic(err)
+	}
+	defer gr.Close()
+
+	// tar read
+	tr := tar.NewReader(gr)
+
+	// 读取文件
+	for {
+		h, err := tr.Next()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			panic(err)
+		}
+
+		// 显示文件
+		fmt.Println(h.Name)
+
+		// 打开文件
+		fw, err := os.OpenFile(ofpath+h.Name, os.O_CREATE|os.O_WRONLY, 0644 /*os.FileMode(h.Mode)*/)
+		if err != nil {
+			panic(err)
+		}
+		defer fw.Close()
+
+		// 写文件
+		_, err = io.Copy(fw, tr)
+		if err != nil {
+			panic(err)
+		}
+
+	}
+
+	fmt.Println("un tar.gz ok")
 	return nil
 }
-func tarxzUnCompress(ifname, ofname string) error {
+func tarxzUnCompress(ifpath, ofpath string) error {
 	return nil
 }
-func sevenzUnCompress(ifname, ofname string) error {
+func sevenzUnCompress(ifpath, ofpath string) error {
 	return nil
 }
-func rarUnCompress(ifname, ofname string) error {
+func rarUnCompress(ifpath, ofpath string) error {
 	return nil
 }
 

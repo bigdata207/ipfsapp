@@ -1,4 +1,4 @@
-package raftkv
+package main
 
 import (
 	"github.com/mackzhong/ipfsapp/labrpc"
@@ -10,7 +10,7 @@ import (
 	//crand "github.com/mackzhong/ipfsapp/fastrand"
 
 	"encoding/base64"
-	"github.com/mackzhong/ipfsapp/raft"
+	"github.com/mackzhong/ipfsapp/sraft"
 	"math/rand"
 	"runtime"
 	"sync"

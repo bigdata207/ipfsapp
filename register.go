@@ -36,3 +36,6 @@ func registerFunc(funName string, fun interface{}) {
 func registerAnonymousFunc(funName string, fun func(interface{}) string) {
 	anonymousMap[funName] = fun
 }
+func registerRPCServer() error {
+	return nil
+}

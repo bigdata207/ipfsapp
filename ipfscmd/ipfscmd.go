@@ -1,4 +1,4 @@
-// cmd/ipfs implements the primary CLI binary for ipfs
+//Package ipfscmd implements the primary CLI binary for ipfs
 package ipfscmd
 
 import (
@@ -61,7 +61,8 @@ type cmdInvocation struct {
 // - output the response
 // - if anything fails, print error, maybe with help
 
-func mainRet(Args ...string) int {
+//MainRet ipfs客户端接口
+func MainRet(c chan int, Args ...string) {
 	rand.Seed(time.Now().UnixNano())
 	ctx := logging.ContextWithLoggable(context.Background(), loggables.Uuid("session"))
 	var err error
@@ -77,7 +78,7 @@ func mainRet(Args ...string) int {
 	stopFunc, err := profileIfEnabled()
 	if err != nil {
 		printErr(err)
-		return 1
+		c <- 1
 	}
 	defer stopFunc() // to be executed as late as possible
 
@@ -102,7 +103,7 @@ func mainRet(Args ...string) int {
 	if len(Args) == 2 {
 		if Args[1] == "help" {
 			printHelp(false, os.Stdout)
-			return 0
+			c <- 0
 		} else if Args[1] == "--version" {
 			Args[1] = "version"
 		}
@@ -117,11 +118,11 @@ func mainRet(Args ...string) int {
 		longH, shortH, err := invoc.requestedHelp()
 		if err != nil {
 			printErr(err)
-			return 1
+			c <- 1
 		}
 		if longH || shortH {
 			printHelp(longH, os.Stdout)
-			return 0
+			c <- 0
 		}
 	}
 
@@ -136,7 +137,7 @@ func mainRet(Args ...string) int {
 			fmt.Fprintf(os.Stderr, "\n")
 			printHelp(false, os.Stderr)
 		}
-		return 1
+		c <- 1
 	}
 
 	// here we handle the cases where
@@ -144,7 +145,7 @@ func mainRet(Args ...string) int {
 	// - the main command is invoked.
 	if invoc.cmd == nil || invoc.cmd.Run == nil {
 		printHelp(false, os.Stdout)
-		return 0
+		c <- 0
 	}
 
 	// ok, finally, run the command invocation.
@@ -159,16 +160,16 @@ func mainRet(Args ...string) int {
 		if isClientError(err) {
 			printMetaHelp(os.Stderr)
 		}
-		return 1
+		c <- 1
 	}
 
 	// everything went better than expected :)
 	_, err = io.Copy(os.Stdout, output)
 	if err != nil {
 		printErr(err)
-		return 1
+		c <- 1
 	}
-	return 0
+	c <- 0
 }
 
 func (i *cmdInvocation) Run(ctx context.Context) (output io.Reader, err error) {

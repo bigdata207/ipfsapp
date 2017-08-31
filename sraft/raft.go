@@ -129,7 +129,7 @@ func (rf *Raft) persist() {
 	rf.persister.SaveRaftState(data)
 }
 
-//读取快照回复节点状态
+//读取快照恢复节点状态
 func (rf *Raft) readSnapshot(data []byte) {
 
 	rf.readPersist(rf.persister.ReadRaftState())
@@ -170,34 +170,34 @@ func (rf *Raft) readPersist(data []byte) {
 	d.Decode(&rf.log)
 }
 
-//拉取选票 的RPC结构体
+//RequestVoteArgs 请求选票 的RPC结构体
 type RequestVoteArgs struct {
 	// Your data here.
 	Term         int
-	CandidateId  int
+	CandidateID  int
 	LastLogTerm  int
 	LastLogIndex int
 }
 
-//回复拉取选票的RPC结构体
+//RequestVoteReply 回复选票请求的RPC结构体
 type RequestVoteReply struct {
 	// Your data here.
 	Term        int
 	VoteGranted bool
 }
 
-//添加日志的RPC结构体
+//AppendEntriesArgs 请求添加日志的RPC结构体
 type AppendEntriesArgs struct {
 	// Your data here.
 	Term         int
-	LeaderId     int
+	LeaderID     int
 	PrevLogTerm  int
 	PrevLogIndex int
 	Entries      []LogEntry
 	LeaderCommit int
 }
 
-//回复日志添加的RPC结构体
+//AppendEntriesReply 回复日志添加请求的RPC结构体
 type AppendEntriesReply struct {
 	// Your data here.
 	Term      int
@@ -205,7 +205,7 @@ type AppendEntriesReply struct {
 	NextIndex int
 }
 
-//选票拉取请求，args就是当前节点参数的取出一个集合
+//RequestVote 选票请求处理，args就是当前节点参数的一个集合
 func (rf *Raft) RequestVote(args RequestVoteArgs, reply *RequestVoteReply) {
 	rf.mu.Lock()
 	defer rf.mu.Unlock()
@@ -215,7 +215,6 @@ func (rf *Raft) RequestVote(args RequestVoteArgs, reply *RequestVoteReply) {
 		reply.Term = rf.currentTerm
 		return
 	}
-	//If RPC request or response contains term T > currentTerm: set currentTerm = T, convert to follower
 	//如果中的任期大于打前节点的任期，则将当前节点设为follower,当前任期设为请求中的任期，默认选举人编号为-1
 	if args.Term > rf.currentTerm {
 		rf.currentTerm = args.Term
@@ -241,15 +240,15 @@ func (rf *Raft) RequestVote(args RequestVoteArgs, reply *RequestVoteReply) {
 		uptoDate = true
 	}
 
-	if (rf.votedFor == -1 || rf.votedFor == args.CandidateId) && uptoDate {
+	if (rf.votedFor == -1 || rf.votedFor == args.CandidateID) && uptoDate {
 		rf.chanGrantVote <- true
 		rf.state = FOLLOWER
 		reply.VoteGranted = true
-		rf.votedFor = args.CandidateId
+		rf.votedFor = args.CandidateID
 	}
 }
 
-//日志添加
+//AppendEntries 处理日志添加请求
 func (rf *Raft) AppendEntries(args AppendEntriesArgs, reply *AppendEntriesReply) {
 	rf.mu.Lock()
 	defer rf.mu.Unlock()
@@ -334,7 +333,7 @@ func (rf *Raft) AppendEntries(args AppendEntriesArgs, reply *AppendEntriesReply)
 // that the caller passes the address of the reply struct with &, not
 // the struct itself.
 //
-
+//调用rpc服务发送选票请求
 func (rf *Raft) sendRequestVote(server int, args RequestVoteArgs, reply *RequestVoteReply) bool {
 	ok := rf.peers[server].Call("Raft.RequestVote", args, reply)
 	rf.mu.Lock()
@@ -368,7 +367,7 @@ func (rf *Raft) sendRequestVote(server int, args RequestVoteArgs, reply *Request
 	return ok
 }
 
-//发送日志添加请求
+//调用rpc服务发送日志添加请求
 func (rf *Raft) sendAppendEntries(server int, args AppendEntriesArgs, reply *AppendEntriesReply) bool {
 	//ok代表请求是否发送到服务器，false表示无法连接到服务器,ture表示发送成功
 	ok := rf.peers[server].Call("Raft.AppendEntries", args, reply)
@@ -407,15 +406,12 @@ func (rf *Raft) sendAppendEntries(server int, args AppendEntriesArgs, reply *App
 	return ok
 }
 
-/*
- *快照相关部分，用于在节点奔溃或者重启后的状态恢复
- */
-
+//InstallSnapshotArgs 快照相关部分，用于在节点奔溃或者重启后的状态恢复
 type InstallSnapshotArgs struct {
-	Term              int			//任期
-	LeaderId          int			//leader编号
-	LastIncludedIndex int			//两个节点重合日志的最大编号
-	LastIncludedTerm  int			//两个节点重合的编号最大的日志的任期，这两个参数可以通过truncatelog函数获取两个节点日志中其中一个少掉的那部分日志然后从另一个节点同步回去
+	Term              int //任期
+	LeaderID          int //leader编号
+	LastIncludedIndex int //两个节点重合日志的最大编号
+	LastIncludedTerm  int //两个节点重合的编号最大的日志的任期，这两个参数可以通过truncatelog函数获取两个节点日志中其中一个少掉的那部分日志然后从另一个节点同步回去
 	Data              []byte
 }
 
@@ -426,7 +422,6 @@ type InstallSnapshotReply struct {
 func (rf *Raft) GetPerisistSize() int {
 	return rf.persister.RaftStateSize()
 }
-
 
 func (rf *Raft) StartSnapshot(snapshot []byte, index int) {
 
@@ -477,11 +472,10 @@ func truncateLog(lastIncludedIndex int, lastIncludedTerm int, log []LogEntry) []
 			break
 		}
 	}
-
 	return newLogEntries
 }
 
-//节点根据给定快照参数从快照中恢复快照中的状态
+//InstallSnapshot 节点根据给定快照参数从快照中恢复快照中的状态
 func (rf *Raft) InstallSnapshot(args InstallSnapshotArgs, reply *InstallSnapshotReply) {
 	// Your code here.
 	rf.mu.Lock()
@@ -494,7 +488,8 @@ func (rf *Raft) InstallSnapshot(args InstallSnapshotArgs, reply *InstallSnapshot
 	//更新节点参数
 	rf.chanHeartbeat <- true
 	rf.state = FOLLOWER
-	rf.currentTerm = rf.currentTerm
+	//rf.currentTerm = rf.currentTerm
+	rf.currentTerm = args.Term
 	//保存参数数据
 	rf.persister.SaveSnapshot(args.Data)
 
@@ -511,6 +506,7 @@ func (rf *Raft) InstallSnapshot(args InstallSnapshotArgs, reply *InstallSnapshot
 	rf.chanApply <- msg
 }
 
+//调用rpc服务将自己的节点状态打包发送给其他节点
 func (rf *Raft) sendInstallSnapshot(server int, args InstallSnapshotArgs, reply *InstallSnapshotReply) bool {
 	ok := rf.peers[server].Call("Raft.InstallSnapshot", args, reply)
 	if ok {
@@ -570,7 +566,7 @@ func (rf *Raft) broadcastRequestVote() {
 	var args RequestVoteArgs
 	rf.mu.Lock()
 	args.Term = rf.currentTerm
-	args.CandidateId = rf.me
+	args.CandidateID = rf.me
 	args.LastLogTerm = rf.getLastTerm()
 	args.LastLogIndex = rf.getLastIndex()
 	rf.mu.Unlock()
@@ -627,7 +623,7 @@ func (rf *Raft) broadcastAppendEntries() {
 			if rf.nextIndex[i] > baseIndex {
 				var args AppendEntriesArgs
 				args.Term = rf.currentTerm
-				args.LeaderId = rf.me
+				args.LeaderID = rf.me
 				args.PrevLogIndex = rf.nextIndex[i] - 1
 				//	fmt.Printf("baseIndex:%d PrevLogIndex:%d\n",baseIndex,args.PrevLogIndex )
 				args.PrevLogTerm = rf.log[args.PrevLogIndex-baseIndex].LogTerm
@@ -642,7 +638,7 @@ func (rf *Raft) broadcastAppendEntries() {
 			} else {
 				var args InstallSnapshotArgs
 				args.Term = rf.currentTerm
-				args.LeaderId = rf.me
+				args.LeaderID = rf.me
 				args.LastIncludedIndex = rf.log[0].LogIndex
 				args.LastIncludedTerm = rf.log[0].LogTerm
 				args.Data = rf.persister.snapshot

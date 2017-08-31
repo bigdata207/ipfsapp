@@ -21,7 +21,7 @@ import (
 **/
 
 const (
-	user       = "bigdata"
+	username   = "bigdata"
 	password   = "1234"
 	seq        = "!@#$%^&*()_+"
 	keyRoot    = "./"
@@ -62,7 +62,7 @@ func init() {
 //calSalt 计算salt,并且会在不存在rsa key时生成
 func calSalt() {
 
-	origstr := user + seq + password
+	origstr := username + seq + password
 	if len([]byte(origstr)) > 128 {
 		fmt.Println("seq is too long")
 		return

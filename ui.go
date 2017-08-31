@@ -30,7 +30,7 @@ func LoginBox() {
 func RegisterBox() {}
 
 //AlertBox 警告弹窗
-func AlertBox() {}
+func AlertBox(warnMess string) {}
 
 //ConfirmBox 确认弹窗
 func ConfirmBox() {}

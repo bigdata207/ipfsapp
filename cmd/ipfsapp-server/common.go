@@ -1,4 +1,4 @@
-package raftkv
+package main
 
 const (
 	OK       = "OK"

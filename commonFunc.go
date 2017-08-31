@@ -142,6 +142,9 @@ func ContainEle(arr []interface{}, ele interface{}) int {
 	return -1
 }
 
+var ExceptDirs = []string{"algorithm", "datastructure", "fastrand", "go-unarr", "raft", "labrpc", "validator", "ipfscmd"}
+var ContainDirs = []string{"vueweb", "archiver", "cmd", "ipfsapp-client", "ipfsapp-server", "ipfsapp-register"}
+
 //LinesCounter 统计文件下go源码行数
 func LinesCounter(dir string, suffix ...string) int {
 	if len(suffix) == 0 {
@@ -151,7 +154,7 @@ func LinesCounter(dir string, suffix ...string) int {
 	fs, err := ioutil.ReadDir(dir)
 	if err == nil {
 		for _, v := range fs {
-			if v.IsDir() {
+			if v.IsDir() && ContainEle(strArr2InterArr(ContainDirs), v.Name()) != -1 {
 				lines += LinesCounter(dir + "/" + v.Name())
 			} else {
 				s := strings.Split(v.Name(), ".")

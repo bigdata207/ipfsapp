@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"os/user"
 	"strings"
 )
 
@@ -57,9 +58,9 @@ func installIPFS(installPath ...string) error {
 		log.Fatal(err)
 	}
 	fmt.Printf("%s", out.String())
-	user, _ := os.Hostname()
+	u, _ := user.Current()
 	bin := path + "/go-ipfs"
-	cmd = exec.Command(fmt.Sprintf("echo \"export PATH=$PATH:%v\" | tee -a /home/%v/.bashrc echo \"export PATH=$PATH:%v\" | tee -a /home/%v/.zshrc", bin, user, bin, user))
+	cmd = exec.Command(fmt.Sprintf("echo \"export PATH=$PATH:%v\" | tee -a /home/%v/.bashrc echo \"export PATH=$PATH:%v\" | tee -a /home/%v/.zshrc", bin, u.HomeDir, bin, u.HomeDir))
 	err = cmd.Run()
 	return err
 }

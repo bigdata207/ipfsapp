@@ -3,6 +3,7 @@ package ipfsapp
 import (
 	"fmt"
 	"os"
+	"os/user"
 	"path/filepath"
 	"testing"
 )
@@ -18,4 +19,6 @@ func TestMain(t *testing.T) {
 	fmt.Println(testIPFS())
 	a := "1234"
 	fmt.Println(string(strend(a)))
+	u, _ := user.Current()
+	fmt.Println(u.HomeDir)
 }

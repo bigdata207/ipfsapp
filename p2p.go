@@ -1,9 +1,7 @@
 package ipfsapp
 
 import (
-	_ "bufio"
 	"bytes"
-	_ "bytes"
 	"context"
 	"crypto/md5"
 	"crypto/rand"
@@ -58,7 +56,7 @@ func makeBasicHosts(listenPort int, secio bool, randseed int64) (map[string]host
 	if err != nil {
 		return nil, err
 	}
-	ips := getIP()
+	ips := getInternalIP()
 	//ips = append(ips, "116.7.234.243")
 	bhs := make(map[string]host.Host)
 	for _, ip := range ips {
@@ -486,12 +484,14 @@ func Md5SumFile(file string) (value [md5.Size]byte, err error) {
 	value = md5.Sum(data)
 	return value, nil
 }
+
 func Md5SumBytes(data []byte) string {
 	value := md5.Sum(data)
 	//md5val := make([]byte, 0, md5.Size)
 	//md5val = append(md5val, value...)
 	return fmt.Sprintf("%x", value)
 }
+
 func Md5SumFolder(folder string) (map[string][md5.Size]byte, error) {
 	results := make(map[string][md5.Size]byte)
 	filepath.Walk(folder, func(path string, info os.FileInfo, err error) error {

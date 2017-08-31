@@ -2,10 +2,15 @@ package ipfsapp
 
 import (
 	"bufio"
+	"bytes"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net"
+	_ "net/http"
 	"os"
+	"os/exec"
 	"reflect"
 	"strings"
 )
@@ -143,7 +148,7 @@ func ContainEle(arr []interface{}, ele interface{}) int {
 }
 
 var ExceptDirs = []string{"algorithm", "datastructure", "fastrand", "go-unarr", "raft", "labrpc", "validator", "ipfscmd"}
-var ContainDirs = []string{"vueweb", "archiver", "cmd", "ipfsapp-client", "ipfsapp-server", "ipfsapp-register"}
+var ContainDirs = []string{"vueweb", "cmd", "ipfsapp-client", "ipfsapp-server", "ipfsapp-register"}
 
 //LinesCounter 统计文件下go源码行数
 func LinesCounter(dir string, suffix ...string) int {
@@ -168,7 +173,7 @@ func LinesCounter(dir string, suffix ...string) int {
 	return lines
 }
 
-func getIP() []string {
+func getInternalIP() []string {
 	addrs, err := net.InterfaceAddrs()
 	if err != nil {
 		fmt.Println(err)
@@ -188,4 +193,95 @@ func getIP() []string {
 		}
 	}
 	return ips
+}
+func getExternalIP(isProxy ...bool) string {
+	if len(isProxy) == 0 {
+		ip, err := IPAPI(false)
+		if err == nil {
+			return ip.IP
+		}
+	} else {
+		ip, err := IPAPI(isProxy[0])
+		if err == nil {
+			return ip.IP
+		}
+	}
+	return ""
+}
+
+type IPInfo struct {
+	Country     string `json:"countyr"`
+	CountryCode string `json:"countrycode"`
+	Region      string `json:"region"`
+	RegionName  string `json:"regionname"`
+	City        string `json:"city"`
+	Zip         string `json:"zip"`
+	Lat         string `josn:"lat"`
+	Lon         string `json:"lon"`
+	Timezone    string `json:"timezone"`
+	Isp         string `json:"isp"`
+	Org         string `json:"org"`
+	As          string `json:"as"`
+	Mobile      string `json:"mobile"`
+	Proxy       string `json:"proxy"`
+	IP          string `json:"query"`
+}
+
+func NewIPInfo(info string, isProxy bool) (*IPInfo, error) {
+	infoMap := make(map[string]string)
+	lines := strings.Split(info, "\n")
+	for _, l := range lines {
+		if len(l) > 0 {
+			par := strings.Split(l, ":")
+			if len(par) == 2 {
+				k := strings.Split(par[0], "1m")
+				v := strings.Split(par[1], "1m")
+				if len(k) == 2 && len(v) == 2 {
+					k[1] = strings.TrimRight(k[1], "\u001b[0m")
+					v[1] = strings.TrimRight(v[1], "\u001b[0m")
+					k[1] = strings.TrimSpace(k[1])
+					v[1] = strings.TrimSpace(v[1])
+					strings.Replace(k[1], " ", "", -1)
+					strings.Replace(v[1], " ", "", -1)
+
+					//fmt.Printf("%v  string\n", k[1])
+
+					infoMap[k[1]] = v[1]
+				}
+			}
+		}
+	}
+	data, _ := json.Marshal(infoMap)
+	//fmt.Println(string(data))
+	ipinfo := &IPInfo{}
+	err = json.Unmarshal(data, ipinfo)
+	return ipinfo, err
+}
+
+func IPAPI(isProxy bool) (*IPInfo, error) {
+	apiURL := "http://ip-api.com/"
+
+	//html := fetch(&apiURL, &proxyAddr)
+	//resp, err := http.Get(apiURL)
+	//if err == nil {
+	//	fmt.Println(resp.Body)
+	//fmt.Println(strings.Contains(resp.Body, "116"))
+	//}
+	var cmd *exec.Cmd
+	if isProxy {
+		cmd = exec.Command("proxychains", "curl", apiURL)
+	} else {
+		cmd = exec.Command("curl", apiURL)
+	}
+
+	var out bytes.Buffer
+	cmd.Stdout = &out
+	err := cmd.Run()
+	if err == nil {
+		//fmt.Println(out.String())
+		ip, err := NewIPInfo(out.String(), isProxy)
+		//fmt.Println(ip.IP)
+		return ip, err
+	}
+	return &IPInfo{}, errors.New("You should install proxychains and start shadowsocks")
 }
